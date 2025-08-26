@@ -1,8 +1,8 @@
-// src/components/LoginPage.jsx - Updated with Admin Access
+// src/components/AdminLoginPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Terminal, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, Shield } from 'lucide-react';
+import { Shield, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle, Terminal } from 'lucide-react';
 
-const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
+const AdminLoginPage = ({ onAdminLogin, theme = 'green', onBackToMain }) => {
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -12,15 +12,8 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [systemMessages, setSystemMessages] = useState([]);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
-  // Valid credentials
-  const VALID_CREDENTIALS = {
-    username: 'Paul',
-    password: 'intermaxuiweb2025'
-  };
-
-  // Admin credentials
+  // Admin credentials - different from Paul's user credentials
   const ADMIN_CREDENTIALS = {
     username: 'admin',
     password: 'intermax-admin-2025'
@@ -59,23 +52,16 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
 
   const colors = themeColors[theme];
 
-  // System messages animation
+  // Admin system messages
   useEffect(() => {
-    const messages = showAdminLogin ? [
-      'Admin console initializing...',
+    const messages = [
+      'Initializing InterMAX-UI Admin Console...',
       'Loading administrative protocols...',
       'Establishing secure admin connection...',
       'Admin authentication required...',
       'Enter admin credentials to access control panel...'
-    ] : [
-      'Initializing InterMAX-UI Terminal...',
-      'Loading neural network protocols...',
-      'Establishing secure connection...',
-      'Cybernetic authentication required...',
-      'Enter credentials to access ARIA interface...'
     ];
 
-    setSystemMessages([]); // Clear previous messages
     let currentIndex = 0;
     const interval = setInterval(() => {
       if (currentIndex < messages.length) {
@@ -91,7 +77,7 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
     }, 800);
 
     return () => clearInterval(interval);
-  }, [showAdminLogin]);
+  }, []);
 
   const handleInputChange = (field, value) => {
     setCredentials(prev => ({
@@ -101,7 +87,7 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
     setError('');
   };
 
-  const handleLogin = async (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
     
     if (!credentials.username || !credentials.password) {
@@ -114,12 +100,11 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
 
     // Simulate authentication delay
     setTimeout(() => {
-      // Check for admin credentials first
       if (
         credentials.username === ADMIN_CREDENTIALS.username &&
         credentials.password === ADMIN_CREDENTIALS.password
       ) {
-        // Admin login success
+        // Success
         setSystemMessages(prev => [...prev, {
           id: Date.now(),
           text: `Admin authentication successful. Welcome, Administrator!`,
@@ -130,51 +115,28 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
         setTimeout(() => {
           onAdminLogin(credentials.username);
         }, 1000);
-      } else if (
-        credentials.username === VALID_CREDENTIALS.username &&
-        credentials.password === VALID_CREDENTIALS.password
-      ) {
-        // User login success
-        setSystemMessages(prev => [...prev, {
-          id: Date.now(),
-          text: `Authentication successful. Welcome, ${credentials.username}!`,
-          timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false }),
-          success: true
-        }]);
-        
-        setTimeout(() => {
-          onLogin(credentials.username);
-        }, 1000);
       } else {
         // Failure
         setLoginAttempts(prev => prev + 1);
-        const errorMsg = showAdminLogin ? 'Invalid admin credentials. Access denied.' : 'Invalid credentials. Access denied.';
-        setError(errorMsg);
+        setError('Invalid admin credentials. Access denied.');
         setSystemMessages(prev => [...prev, {
           id: Date.now(),
-          text: `Authentication failed. Attempt ${loginAttempts + 1}/3`,
+          text: `Admin authentication failed. Attempt ${loginAttempts + 1}/5`,
           timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false }),
           error: true
         }]);
         
-        if (loginAttempts >= 2) {
-          setError('Maximum login attempts reached. System locked for 30 seconds.');
+        if (loginAttempts >= 4) {
+          setError('Maximum admin login attempts reached. Console locked for 60 seconds.');
           setTimeout(() => {
             setLoginAttempts(0);
             setError('');
-          }, 30000);
+          }, 60000);
         }
       }
       
       setIsLoading(false);
     }, 2000);
-  };
-
-  const toggleAdminMode = () => {
-    setShowAdminLogin(!showAdminLogin);
-    setCredentials({ username: '', password: '' });
-    setError('');
-    setLoginAttempts(0);
   };
 
   return (
@@ -209,24 +171,23 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
           ))}
         </div>
 
-        {/* Main Login Container */}
+        {/* Back to Main Button */}
+        <button
+          onClick={onBackToMain}
+          className="fixed top-4 left-4 flex items-center gap-2 px-4 py-2 border border-gray-600 hover:bg-white/10 rounded transition-colors text-sm z-10"
+        >
+          ← Back to Terminal
+        </button>
+
+        {/* Main Admin Login Container */}
         <div className="w-full max-w-6xl mx-4 flex gap-8 items-center justify-center">
           
-          {/* Left Side - System Terminal */}
+          {/* Left Side - Admin System Terminal */}
           <div className="flex-1 max-w-md">
             <div className={`border ${colors.border} bg-black/80 backdrop-blur-sm p-6 ${colors.glow}`}>
               <div className="flex items-center gap-2 mb-6">
-                {showAdminLogin ? (
-                  <>
-                    <Shield className={`w-5 h-5 ${colors.primary}`} />
-                    <span className={`font-mono text-lg font-bold ${colors.primary}`}>ADMIN CONSOLE</span>
-                  </>
-                ) : (
-                  <>
-                    <Terminal className={`w-5 h-5 ${colors.primary}`} />
-                    <span className={`font-mono text-lg font-bold ${colors.primary}`}>SYSTEM TERMINAL</span>
-                  </>
-                )}
+                <Shield className={`w-5 h-5 ${colors.primary}`} />
+                <span className={`font-mono text-lg font-bold ${colors.primary}`}>ADMIN CONSOLE</span>
               </div>
               
               <div className="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
@@ -234,7 +195,7 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
                   <div key={msg.id} className="animate-fadeIn">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                       <span>[{msg.timestamp}]</span>
-                      <span>{showAdminLogin ? 'ADMIN-SYS' : 'SYSTEM'}</span>
+                      <span>ADMIN-SYS</span>
                     </div>
                     <div className={`text-sm font-mono pl-4 border-l-2 ${
                       msg.success ? 'border-green-400 text-green-400' :
@@ -251,72 +212,41 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
             </div>
           </div>
 
-          {/* Right Side - Login Form */}
+          {/* Right Side - Admin Login Form */}
           <div className="flex-1 max-w-md">
             <div className={`border ${colors.border} bg-black/80 backdrop-blur-sm p-8 ${colors.glow}`}>
               
               {/* Header */}
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  {showAdminLogin ? (
-                    <>
-                      <Shield className={`w-8 h-8 ${colors.primary} animate-pulse-slow`} />
-                      <div>
-                        <h1 className={`font-mono text-2xl font-bold ${colors.primary}`}>ADMIN ACCESS</h1>
-                        <p className="font-mono text-xs text-gray-500">Administrative Control Panel</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <Terminal className={`w-8 h-8 ${colors.primary} animate-pulse-slow`} />
-                      <div>
-                        <h1 className={`font-mono text-2xl font-bold ${colors.primary}`}>InterMAX-UI</h1>
-                        <p className="font-mono text-xs text-gray-500">ARIA TERMINAL v2.2.8</p>
-                      </div>
-                    </>
-                  )}
+                  <Shield className={`w-8 h-8 ${colors.primary} animate-pulse-slow`} />
+                  <div>
+                    <h1 className={`font-mono text-2xl font-bold ${colors.primary}`}>ADMIN ACCESS</h1>
+                    <p className="font-mono text-xs text-gray-500">InterMAX-UI Control Panel</p>
+                  </div>
                 </div>
                 <div className="flex items-center justify-center gap-2 text-gray-400">
                   <Lock className="w-4 h-4" />
-                  <span className="text-sm font-mono">
-                    {showAdminLogin ? 'ADMINISTRATIVE CREDENTIALS REQUIRED' : 'SECURE ACCESS REQUIRED'}
-                  </span>
+                  <span className="text-sm font-mono">ADMINISTRATIVE CREDENTIALS REQUIRED</span>
                 </div>
               </div>
 
-              {/* Admin Toggle Button */}
-              <div className="flex justify-center mb-6">
-                <button
-                  onClick={toggleAdminMode}
-                  className={`flex items-center gap-2 px-4 py-2 border transition-all duration-300 ${
-                    showAdminLogin 
-                      ? `${colors.border} ${colors.primary} ${colors.bg}` 
-                      : 'border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-300'
-                  }`}
-                >
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-mono">
-                    {showAdminLogin ? 'Switch to User Login' : 'Administrative Access'}
-                  </span>
-                </button>
-              </div>
-
-              {/* Login Form */}
-              <form onSubmit={handleLogin} className="space-y-6">
+              {/* Admin Login Form */}
+              <form onSubmit={handleAdminLogin} className="space-y-6">
                 
                 {/* Username Field */}
                 <div>
                   <label className="block text-sm font-mono text-gray-400 mb-2">
                     <User className="w-4 h-4 inline mr-2" />
-                    {showAdminLogin ? 'ADMIN USERNAME' : 'USERNAME'}
+                    ADMIN USERNAME
                   </label>
                   <input
                     type="text"
                     value={credentials.username}
                     onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder={showAdminLogin ? "Enter admin username..." : "Enter username..."}
+                    placeholder="Enter admin username..."
                     className={`w-full bg-black/60 border ${error ? 'border-red-400' : 'border-gray-700'} p-3 font-mono text-sm text-white placeholder-gray-500 focus:${colors.border} outline-none transition-colors`}
-                    disabled={isLoading || loginAttempts >= 3}
+                    disabled={isLoading || loginAttempts >= 5}
                     autoComplete="username"
                   />
                 </div>
@@ -325,23 +255,23 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
                 <div>
                   <label className="block text-sm font-mono text-gray-400 mb-2">
                     <Lock className="w-4 h-4 inline mr-2" />
-                    {showAdminLogin ? 'ADMIN PASSWORD' : 'PASSWORD'}
+                    ADMIN PASSWORD
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={credentials.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      placeholder={showAdminLogin ? "Enter admin password..." : "Enter password..."}
+                      placeholder="Enter admin password..."
                       className={`w-full bg-black/60 border ${error ? 'border-red-400' : 'border-gray-700'} p-3 pr-12 font-mono text-sm text-white placeholder-gray-500 focus:${colors.border} outline-none transition-colors`}
-                      disabled={isLoading || loginAttempts >= 3}
+                      disabled={isLoading || loginAttempts >= 5}
                       autoComplete="current-password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                      disabled={isLoading || loginAttempts >= 3}
+                      disabled={isLoading || loginAttempts >= 5}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -356,37 +286,40 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
                   </div>
                 )}
 
-                {/* Login Button */}
+                {/* Admin Login Button */}
                 <button
                   type="submit"
-                  disabled={isLoading || loginAttempts >= 3 || !credentials.username || !credentials.password}
+                  disabled={isLoading || loginAttempts >= 5 || !credentials.username || !credentials.password}
                   className={`w-full py-3 px-6 border ${colors.border} ${colors.primary} font-mono text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:${colors.bg} ${isLoading ? 'animate-pulse' : ''}`}
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      {showAdminLogin ? 'AUTHENTICATING...' : 'AUTHENTICATING...'}
+                      AUTHENTICATING...
                     </div>
-                  ) : loginAttempts >= 3 ? (
-                    'SYSTEM LOCKED'
+                  ) : loginAttempts >= 5 ? (
+                    'ADMIN CONSOLE LOCKED'
                   ) : (
-                    showAdminLogin ? 'ACCESS ADMIN PANEL' : 'ACCESS TERMINAL'
+                    'ACCESS ADMIN PANEL'
                   )}
                 </button>
               </form>
 
-              {/* Footer Info */}
+              {/* Admin Info */}
               <div className="mt-8 pt-6 border-t border-gray-800">
                 <div className="text-center space-y-2">
                   <div className="text-xs font-mono text-gray-500">
-                    {showAdminLogin ? 'Authorized Administrative Personnel Only' : 'Authorized Personnel Only'}
+                    Authorized Administrative Personnel Only
                   </div>
                   <div className="flex items-center justify-center gap-4 text-xs font-mono text-gray-600">
-                    <span>v2.2.8</span>
+                    <span>ADMIN v2.2.8</span>
                     <span>•</span>
-                    <span>SECURE</span>
+                    <span>SECURE ACCESS</span>
                     <span>•</span>
                     <span>{new Date().getFullYear()}</span>
+                  </div>
+                  <div className="text-xs font-mono text-gray-600 mt-4">
+                    Admin credentials: admin / intermax-admin-2025
                   </div>
                 </div>
               </div>
@@ -415,4 +348,4 @@ const LoginPage = ({ onLogin, onAdminLogin, theme = 'green' }) => {
   );
 };
 
-export default LoginPage;
+export default AdminLoginPage;
